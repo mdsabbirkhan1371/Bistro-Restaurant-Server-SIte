@@ -7,8 +7,8 @@ const app = express();
 
 // middleware
 
-app.use(express());
 app.use(cors());
+app.use(express.json());
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@bristobossdb.jmr3uxk.mongodb.net/?retryWrites=true&w=majority&appName=BristoBossDB`;
@@ -29,6 +29,7 @@ async function run() {
 
     const menuCollection = client.db('BistroBossDb').collection('Menu');
     const reviewCollection = client.db('BistroBossDb').collection('Reviws');
+    const cartsCollection = client.db('BistroBossDb').collection('cartItems');
 
     app.get('/menu', async (req, res) => {
       const result = await menuCollection.find().toArray();
@@ -37,6 +38,27 @@ async function run() {
 
     app.get('/reviews', async (req, res) => {
       const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
+
+    // -----------add to cart and user related api------------
+
+    // get carts full specific user
+
+    app.get('/carts', async (req, res) => {
+      // for getting specific person data
+      const email = req.query.email;
+      const query = { email: email };
+      // need to do this  from above
+      const result = await cartsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // send data to carts api
+    app.post('/carts', async (req, res) => {
+      const cartItem = req.body;
+      console.log('new cart added', cartItem);
+      const result = await cartsCollection.insertOne(cartItem);
       res.send(result);
     });
 
