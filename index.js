@@ -30,7 +30,53 @@ async function run() {
     const menuCollection = client.db('BistroBossDb').collection('Menu');
     const reviewCollection = client.db('BistroBossDb').collection('Reviws');
     const cartsCollection = client.db('BistroBossDb').collection('cartItems');
+    const userCollection = client.db('BistroBossDb').collection('AllUsers');
 
+    // ----------------users related apis--------------------
+
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      console.log(filter);
+
+      const updatedDoc = {
+        $set: {
+          role: 'admin',
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      console.log(result);
+      res.send(result);
+    });
+
+    // get all users
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      // if user exist then don't allow to send in db and if not then send to db
+
+      const query = { email: user.email };
+      const existUser = await userCollection.findOne(query);
+      if (existUser) {
+        return res.send({ message: 'User Already Exist', insertedId: null });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // ----------menu and reviews related api----------------
     app.get('/menu', async (req, res) => {
       const result = await menuCollection.find().toArray();
       res.send(result);
