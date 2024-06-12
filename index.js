@@ -153,6 +153,15 @@ async function run() {
       res.send(result);
     });
 
+    // post one data
+
+    app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
+      const menuItem = req.body;
+      console.log(menuItem);
+      const result = await menuCollection.insertOne(menuItem);
+      res.send(result);
+    });
+
     // -----------add to cart and user related api------------
 
     // get carts full specific user
