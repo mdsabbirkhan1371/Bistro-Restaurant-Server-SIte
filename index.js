@@ -33,6 +33,9 @@ async function run() {
     const reviewCollection = client.db('BistroBossDb').collection('Reviws');
     const cartsCollection = client.db('BistroBossDb').collection('cartItems');
     const userCollection = client.db('BistroBossDb').collection('AllUsers');
+    const paymentDetailCollection = client
+      .db('BistroBossDb')
+      .collection('PaymentDetails');
 
     // middlewares for verify token second stem jwt
     const verifyToken = (req, res, next) => {
@@ -232,7 +235,7 @@ async function run() {
 
     // payment integration stripe
 
-    // first step
+    // first step payment intent
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
@@ -247,6 +250,26 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+
+    // second step get data from client site for save payment details
+
+    app.post('/payments', async (req, res) => {
+      const payment = req.body;
+      console.log('payment result', payment);
+      const paymentResult = await paymentDetailCollection.insertOne(payment);
+
+      //  carefully delete each item from the cart
+      console.log('payment info', payment);
+      const query = {
+        _id: {
+          $in: payment.cartIds.map(id => new ObjectId(id)),
+        },
+      };
+
+      const deleteResult = await cartsCollection.deleteMany(query);
+
+      res.send({ paymentResult, deleteResult });
     });
 
     // Send a ping to confirm a successful connection
