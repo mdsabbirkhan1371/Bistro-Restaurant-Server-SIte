@@ -235,6 +235,17 @@ async function run() {
 
     // payment integration stripe
 
+    // third step
+
+    app.get('/payments/:email', verifyToken, async (req, res) => {
+      const query = { email: req.params.email };
+      if (req.params.email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      const result = await paymentDetailCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // first step payment intent
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
